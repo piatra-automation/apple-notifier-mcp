@@ -1,0 +1,266 @@
+name: Build and Release DXT
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*.*.*'
+      - 'stable'
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    outputs:
+      tag_created: ${{ steps.check.outputs.tag_created }}
+      version_tag: ${{ steps.check.outputs.version_tag }}
+      is_stable: ${{ steps.check.outputs.is_stable }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check commit message and create tag
+        id: check
+        run: |
+          echo "Current branch: ${{ github.ref_name }}"
+          echo "Current SHA: ${{ github.sha }}"
+          
+          # Get the commit message
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "Commit message: '$COMMIT_MSG'"
+          
+          # Check for regular version tag (^^^)
+          if echo "$COMMIT_MSG" | grep "^\^\^\^ v[0-9]\+\.[0-9]\+\.[0-9]\+" > /dev/null; then
+            VERSION_TAG=$(echo "$COMMIT_MSG" | sed 's/^\^\^\^ \(v[0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/')
+            echo "Detected version tag: $VERSION_TAG"
+            IS_STABLE=false
+            
+          # Check for stable version tag (^!^)
+          elif echo "$COMMIT_MSG" | grep "^\^\!\^ v[0-9]\+\.[0-9]\+\.[0-9]\+" > /dev/null; then
+            VERSION_TAG=$(echo "$COMMIT_MSG" | sed 's/^\^\!\^ \(v[0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/')
+            echo "Detected stable version tag: $VERSION_TAG"
+            IS_STABLE=true
+            
+          else
+            echo "No valid version tag pattern found."
+            echo "Expected format: ^^^ v0.9.0 (regular) or ^!^ v0.9.0 (stable)"
+            echo "tag_created=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Check if tag exists
+          if git rev-parse "$VERSION_TAG" >/dev/null 2>&1; then
+            echo "Error: Tag $VERSION_TAG already exists"
+            exit 1
+          fi
+          
+          echo "Configuring git..."
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          
+          echo "Creating tag..."
+          git tag -a "$VERSION_TAG" -m "Release $VERSION_TAG"
+          
+          echo "Pushing tag..."
+          git push origin "$VERSION_TAG"
+          
+          # Create stable tag if this is a stable release
+          if [ "$IS_STABLE" = "true" ]; then
+            echo "This is a stable release. Creating/updating stable tag..."
+            
+            # Delete local stable tag if it exists
+            git tag -d stable 2>/dev/null || true
+            
+            # Create new stable tag pointing to the current commit
+            git tag -a "stable" -m "stable version: $VERSION_TAG"
+            
+            # Force-push the stable tag
+            git push -f origin stable
+            
+            echo "Stable tag successfully updated to $VERSION_TAG"
+          fi
+          
+          echo "tag_created=true" >> $GITHUB_OUTPUT
+          echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
+          echo "is_stable=$IS_STABLE" >> $GITHUB_OUTPUT
+
+  build-dxt:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/tags/stable'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Determine version
+        id: version
+        run: |
+          echo "Current tag: ${{ github.ref_name }}"
+          
+          if [ "${{ github.ref_name }}" = "stable" ]; then
+            # Get the version that stable points to
+            VERSION_TAG=$(git describe --tags stable)
+            VERSION=${VERSION_TAG#v}
+            echo "Building DXT for stable version (pointing to: $VERSION_TAG)"
+          else
+            # Strip the 'v' prefix from the version tag
+            VERSION=${{ github.ref_name }}
+            VERSION=${VERSION#v}
+            echo "Building DXT for version: $VERSION"
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update versions
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          
+          # Update version in package.json
+          npm version $VERSION --no-git-tag-version --allow-same-version
+          
+          # Update version in manifest.json
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" manifest.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Create DXT package
+        run: npm run package:dxt
+
+      - name: Verify DXT
+        run: |
+          if [ ! -f "apple-notifier-mcp.dxt" ]; then
+            echo "Error: DXT file not created!"
+            exit 1
+          fi
+          
+          echo "DXT package created successfully"
+          ls -la apple-notifier-mcp.dxt
+
+      - name: Upload DXT artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apple-notifier-mcp-dxt
+          path: apple-notifier-mcp.dxt
+          retention-days: 7
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: build-dxt
+    if: startsWith(github.ref, 'refs/tags/v') && github.ref != 'refs/tags/stable'
+    steps:
+      - name: Download DXT artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: apple-notifier-mcp-dxt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: v${{ needs.build-dxt.outputs.version }}
+          tag_name: ${{ github.ref_name }}
+          body: |
+            ## Apple Notifier MCP v${{ needs.build-dxt.outputs.version }}
+
+            Enhanced MCP server for macOS notifications with Desktop Extension (DXT) support.
+
+            ### Installation
+
+            1. Install required system dependency:
+               ```bash
+               brew install terminal-notifier
+               ```
+
+            2. Download the attached `apple-notifier-mcp.dxt` file
+
+            3. Double-click the file or drag it to Claude Desktop to install
+
+            ### What's New
+
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for detailed changes.
+
+            ### Features
+
+            - 🔔 Native macOS notifications with terminal-notifier
+            - 💬 Interactive dialog prompts
+            - 🗣️ Text-to-speech functionality
+            - 📸 Screenshot capture
+            - 📁 File selection dialogs
+          files: |
+            apple-notifier-mcp.dxt
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  webhook-notify:
+    runs-on: ubuntu-latest
+    needs: [build-dxt, create-release]
+    if: always() && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/tags/stable')
+    steps:
+      - name: Send webhook notification
+        continue-on-error: true
+        run: |
+          echo "Calling webhook for tag: ${{ github.ref_name }}"
+          
+          TAG_VALUE="${{ github.ref_name }}"
+          WEBHOOK_URL="https://api.piatra.com.au/webhook/mongoapi?tag=${TAG_VALUE}"
+          
+          echo "Webhook URL: $WEBHOOK_URL"
+          
+          if [ -z "${{ secrets.PIATRA_WEBHOOK_API_KEY }}" ]; then
+            echo "WARNING: PIATRA_WEBHOOK_API_KEY secret is not set"
+            echo "Skipping webhook notification"
+            exit 0
+          fi
+          
+          JSON_PAYLOAD="{\"tag\": \"$TAG_VALUE\", \"commit\": \"${{ github.sha }}\", \"project\": \"${{ github.event.repository.name }}\"}"
+          echo "JSON Payload: $JSON_PAYLOAD"
+          
+          # Attempt webhook call with retries
+          for i in 1 2 3; do
+            echo "Webhook attempt $i/3..."
+            
+            HTTP_STATUS=$(curl -X POST "$WEBHOOK_URL" \
+              -H "X-API-Key: ${{ secrets.PIATRA_WEBHOOK_API_KEY }}" \
+              -H "Content-Type: application/json" \
+              -d "$JSON_PAYLOAD" \
+              --max-time 30 \
+              --silent \
+              --write-out "%{http_code}" \
+              --output /tmp/webhook_response.txt)
+            
+            echo "HTTP Status: $HTTP_STATUS"
+            
+            if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+              echo "Webhook call successful!"
+              cat /tmp/webhook_response.txt
+              exit 0
+            else
+              echo "Webhook call failed with HTTP $HTTP_STATUS (attempt $i/3)"
+              cat /tmp/webhook_response.txt || true
+              
+              if [ $i -eq 3 ]; then
+                echo "All webhook attempts failed, but continuing..."
+                exit 0
+              fi
+              sleep 5
+            fi
+          done
