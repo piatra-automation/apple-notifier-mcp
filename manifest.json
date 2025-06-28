@@ -1,7 +1,7 @@
 {
   "dxt_version": "0.1",
   "name": "apple-notifier-mcp",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Enhanced MCP server for sending native macOS notifications with terminal-notifier support, interactive dialogs, text-to-speech, screenshots, and file selection.",
   "license": "MIT",
   "author": {

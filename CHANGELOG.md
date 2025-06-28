@@ -5,6 +5,16 @@ All notable changes to this enhanced version of apple-notifier-mcp will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2025-01-28
+
+### Fixed
+- **GitLab CI/CD Protected Branch Support**: Added support for GITLAB_TOKEN to allow pushing tags to protected branches
+  - CI now checks for GITLAB_TOKEN first, falls back to CI_JOB_TOKEN
+  - Added documentation for setting up Project Access Tokens
+
+### Testing
+- Version bump for CI/CD pipeline testing
+
 ## [1.1.3] - 2025-01-28
 
 ### Fixed
