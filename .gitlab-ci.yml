@@ -59,7 +59,8 @@ create_tag:
       fi
       
       echo "Setting up remote..."
-      if ! git remote set-url origin "https://oauth2:${CI_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"; then
+      # Use CI_JOB_TOKEN which is automatically provided by GitLab
+      if ! git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"; then
         echo "Error: Failed to set remote URL"
         exit 1
       fi

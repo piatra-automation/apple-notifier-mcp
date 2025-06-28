@@ -5,6 +5,13 @@ All notable changes to this enhanced version of apple-notifier-mcp will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2025-01-28
+
+### Fixed
+- **GitLab CI/CD Authentication**: Fixed tag push authentication by using `CI_JOB_TOKEN` instead of undefined `CI_TOKEN`
+- **GitHub Actions Permissions**: Added explicit `contents: write` permissions to allow tag creation and pushing
+- **CI/CD Documentation**: Updated CLAUDE.md to reflect correct authentication requirements
+
 ## [1.1.2] - 2025-01-28
 
 ### Added

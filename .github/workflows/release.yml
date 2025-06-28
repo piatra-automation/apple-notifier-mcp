@@ -9,10 +9,15 @@ on:
       - 'v*.*.*'
       - 'stable'
 
+permissions:
+  contents: write
+  
 jobs:
   create-tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    permissions:
+      contents: write
     outputs:
       tag_created: ${{ steps.check.outputs.tag_created }}
       version_tag: ${{ steps.check.outputs.version_tag }}
@@ -23,6 +28,7 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - name: Check commit message and create tag
         id: check
