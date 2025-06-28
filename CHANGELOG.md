@@ -5,6 +5,18 @@ All notable changes to this enhanced version of apple-notifier-mcp will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5] - 2025-01-28
+
+### Fixed
+- **GitLab CI/CD Pipeline**: Fixed build stages not running after tag creation
+  - Added artifact dependencies between jobs
+  - Jobs now use TAG_CREATED variable to trigger builds in same pipeline
+  - Fixed version detection when building from pipeline-created tags
+
+### Changed
+- **CI/CD Simplification**: Removed webhook notification stages from both GitLab and GitHub pipelines
+- **Documentation**: Updated CLAUDE.md to reflect simplified pipeline without webhooks
+
 ## [1.1.4] - 2025-01-28
 
 ### Fixed
