@@ -5,6 +5,16 @@ All notable changes to this enhanced version of apple-notifier-mcp will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2025-01-28
+
+### Added
+- **GitHub Actions CI/CD**: Added workflow for building and releasing on GitHub (mirrors GitLab functionality)
+
+### Fixed
+- **Critical DXT Installation Issue**: Added missing "server" field in manifest.json that was preventing DXT installation
+  - Extension now properly installs in Claude Desktop
+  - Added required server configuration for stdio-based MCP communication
+
 ## [1.1.1] - 2025-01-28
 
 ### Added

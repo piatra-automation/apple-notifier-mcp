@@ -1,7 +1,7 @@
 {
   "dxt_version": "0.1",
   "name": "apple-notifier-mcp",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "Enhanced MCP server for sending native macOS notifications with terminal-notifier support, interactive dialogs, text-to-speech, screenshots, and file selection.",
   "license": "MIT",
   "author": {
@@ -41,6 +41,13 @@
     "version": ">=18"
   },
   "entry_point": "build/index.js",
+  "server": {
+    "command": "node",
+    "args": [
+      "build/index.js"
+    ],
+    "type": "stdio"
+  },
   "capabilities": {
     "tools": [
       {
@@ -87,8 +94,13 @@
     }
   },
   "platform": {
-    "os": ["darwin"],
-    "arch": ["x64", "arm64"]
+    "os": [
+      "darwin"
+    ],
+    "arch": [
+      "x64",
+      "arm64"
+    ]
   },
   "files": [
     "build/**/*",
