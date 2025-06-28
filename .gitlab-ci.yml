@@ -1,0 +1,311 @@
+stages:
+  - tag
+  - build
+  - release
+  - notify
+
+variables:
+  DXT_FILENAME: apple-notifier-mcp.dxt
+
+create_tag:
+  stage: tag
+  image: alpine:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"  # Using main instead of master
+  script:
+    - apk add --no-cache git
+    - |
+      echo "Current branch: $CI_COMMIT_BRANCH"
+      echo "Current tag: $CI_COMMIT_TAG"
+      
+      # Get and display the commit message
+      COMMIT_MSG=$(git log -1 --pretty=%B)
+      echo "Commit message: '$COMMIT_MSG'"
+      
+      # Check for regular version tag (^^^)
+      if echo "$COMMIT_MSG" | grep "^\^\^\^ v[0-9]\+\.[0-9]\+\.[0-9]\+" > /dev/null; then
+        VERSION_TAG=$(echo "$COMMIT_MSG" | sed 's/^\^\^\^ \(v[0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/')
+        echo "Detected version tag: $VERSION_TAG"
+        IS_STABLE=false
+        
+      # Check for stable version tag (^!^)
+      elif echo "$COMMIT_MSG" | grep "^\^\!\^ v[0-9]\+\.[0-9]\+\.[0-9]\+" > /dev/null; then
+        VERSION_TAG=$(echo "$COMMIT_MSG" | sed 's/^\^\!\^ \(v[0-9]\+\.[0-9]\+\.[0-9]\+\).*/\1/')
+        echo "Detected stable version tag: $VERSION_TAG"
+        IS_STABLE=true
+        
+      else
+        echo "No valid version tag pattern found."
+        echo "Expected format: ^^^ v0.9.0 (regular) or ^!^ v0.9.0 (stable)"
+        echo "Got message: '$COMMIT_MSG'"
+        echo "TAG_CREATED=false" > variables.env
+        exit 0
+      fi
+      
+      # Check if tag exists
+      if git rev-parse "$VERSION_TAG" >/dev/null 2>&1; then
+        echo "Error: Tag $VERSION_TAG already exists"
+        exit 1
+      fi
+      
+      echo "Configuring git..."
+      git config --global user.email "${GITLAB_USER_EMAIL:-gitlab-ci@example.com}"
+      git config --global user.name "${GITLAB_USER_NAME:-GitLab CI}"
+      
+      echo "Creating tag..."
+      if ! git tag -a "$VERSION_TAG" -m "tagged by build step"; then
+        echo "Error: Failed to create tag"
+        exit 1
+      fi
+      
+      echo "Setting up remote..."
+      if ! git remote set-url origin "https://oauth2:${CI_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"; then
+        echo "Error: Failed to set remote URL"
+        exit 1
+      fi
+      
+      echo "Pushing tag..."
+      if ! git push origin "$VERSION_TAG"; then
+        echo "Error: Failed to push tag"
+        exit 1
+      fi
+      
+      # Create stable tag if this is a stable release
+      if [ "$IS_STABLE" = "true" ]; then
+        echo "This is a stable release. Creating/updating stable tag..."
+        
+        # Delete local stable tag if it exists
+        git tag -d stable 2>/dev/null || true
+        
+        # Create new stable tag pointing to the current commit
+        if ! git tag -a "stable" -m "stable version: $VERSION_TAG"; then
+          echo "Error: Failed to create stable tag"
+          exit 1
+        fi
+        
+        # Force-push the stable tag
+        if ! git push -f origin stable; then
+          echo "Error: Failed to push stable tag"
+          exit 1
+        fi
+        
+        echo "Stable tag successfully updated to $VERSION_TAG"
+      fi
+      
+      echo "Creating variables.env..."
+      echo "TAG_CREATED=true" > variables.env
+      echo "VERSION_TAG=$VERSION_TAG" >> variables.env
+      echo "IS_STABLE=$IS_STABLE" >> variables.env
+      echo "Tag creation successful!"
+  artifacts:
+    reports:
+      dotenv: variables.env
+
+build_dxt:
+  stage: build
+  image: node:18-alpine
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/  # Run on semantic version tags
+    - if: $CI_COMMIT_TAG == "stable"             # Also run on stable tag
+  before_script:
+    - apk add --no-cache git zip
+    - npm install -g npm@8.12.1  # Match packageManager version
+  script:
+    - |
+      echo "Current tag: $CI_COMMIT_TAG"
+      echo "Current ref: $CI_COMMIT_REF_NAME"
+      
+      # Update version in package.json to match the tag
+      if [ "$CI_COMMIT_TAG" = "stable" ]; then
+        # Get the version that stable points to
+        git fetch --tags
+        VERSION_TAG=$(git describe --tags stable)
+        VERSION=${VERSION_TAG#v}
+        echo "Building DXT for stable version (pointing to: $VERSION_TAG)"
+      else
+        # Strip the 'v' prefix from the version tag
+        VERSION=${CI_COMMIT_TAG#v}
+        echo "Building DXT for version: $VERSION"
+      fi
+      
+      # Update version in package.json
+      npm version $VERSION --no-git-tag-version --allow-same-version
+      
+      # Update version in manifest.json
+      sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" manifest.json
+      
+      # Install dependencies
+      npm ci
+      
+      # Build the project
+      npm run build
+      
+      # Create the DXT package
+      npm run package:dxt
+      
+      # Verify the DXT file was created
+      if [ ! -f "$DXT_FILENAME" ]; then
+        echo "Error: DXT file not created!"
+        exit 1
+      fi
+      
+      echo "DXT package created successfully: $DXT_FILENAME"
+      ls -la $DXT_FILENAME
+  artifacts:
+    paths:
+      - $DXT_FILENAME
+    expire_in: 1 week
+
+create_release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/  # Run on semantic version tags
+  needs:
+    - job: build_dxt
+      artifacts: true
+  script:
+    - |
+      echo "Creating GitLab release for tag: $CI_COMMIT_TAG"
+      
+      # Get the version number without 'v' prefix
+      VERSION=${CI_COMMIT_TAG#v}
+      
+      # Create release description
+      DESCRIPTION="## Apple Notifier MCP v$VERSION
+
+      Enhanced MCP server for macOS notifications with Desktop Extension (DXT) support.
+
+      ### Installation
+
+      1. Install required system dependency:
+         \`\`\`bash
+         brew install terminal-notifier
+         \`\`\`
+
+      2. Download the attached \`$DXT_FILENAME\` file
+
+      3. Double-click the file or drag it to Claude Desktop to install
+
+      ### What's New
+
+      See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+
+      ### Features
+
+      - 🔔 Native macOS notifications with terminal-notifier
+      - 💬 Interactive dialog prompts
+      - 🗣️ Text-to-speech functionality
+      - 📸 Screenshot capture
+      - 📁 File selection dialogs
+      "
+      
+      # Create the release
+      release-cli create \
+        --name "v$VERSION" \
+        --tag-name "$CI_COMMIT_TAG" \
+        --description "$DESCRIPTION" \
+        --assets-link "{\"name\":\"$DXT_FILENAME\",\"url\":\"${CI_JOB_URL}/artifacts/file/$DXT_FILENAME\",\"link_type\":\"package\"}"
+
+webhook_notify:
+  stage: notify
+  image: alpine:latest
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/  # Run on semantic version tags
+    - if: $CI_COMMIT_TAG == "stable"             # Also run on stable tag
+  needs:
+    - job: build_dxt
+      artifacts: false
+  allow_failure: true  # Don't fail the pipeline if webhook fails
+  before_script:
+    - apk add --no-cache curl
+  script:
+    - |
+      echo "Calling webhook for tag: $CI_COMMIT_TAG"
+      
+      # Use the tag from the CI environment
+      TAG_VALUE="$CI_COMMIT_TAG"
+      
+      # Construct the webhook URL
+      WEBHOOK_URL="https://api.piatra.com.au/webhook/mongoapi?tag=${TAG_VALUE}"
+      
+      echo "Webhook URL: $WEBHOOK_URL"      
+      # Check if API key is set
+      if [ -z "$PIATRA_WEBHOOK_API_KEY" ]; then
+        echo "ERROR: PIATRA_WEBHOOK_API_KEY environment variable is not set"
+        echo "Please add this variable in GitLab CI/CD settings"
+        exit 0  # Don't fail the pipeline
+      fi
+      
+      echo "API Key length: ${#PIATRA_WEBHOOK_API_KEY} characters"
+      echo "API Key starts with: ${PIATRA_WEBHOOK_API_KEY:0:8}..."
+      
+      # Debug: Show what we're sending
+      echo "Debug info:"
+      echo "  Project: $CI_PROJECT_NAME"
+      echo "  Commit: $CI_COMMIT_SHA"
+      echo "  Tag: $TAG_VALUE"
+      
+      # Prepare JSON payload
+      JSON_PAYLOAD="{\"tag\": \"$TAG_VALUE\", \"commit\": \"$CI_COMMIT_SHA\", \"project\": \"$CI_PROJECT_NAME\"}"
+      echo "  JSON Payload: $JSON_PAYLOAD"
+      
+      # Call the webhook with retry logic
+      for i in 1 2 3; do
+        echo ""
+        echo "Webhook attempt $i/3..."
+        
+        # Show headers being sent (for debugging)
+        echo "Sending headers:"
+        echo "  X-API-Key: <${#PIATRA_WEBHOOK_API_KEY} chars>"
+        echo "  Content-Type: application/json"
+        
+        # Capture HTTP status code with verbose curl for debugging
+        HTTP_STATUS=$(curl -X POST "$WEBHOOK_URL" \
+          -H "X-API-Key: $PIATRA_WEBHOOK_API_KEY" \
+          -H "Content-Type: application/json" \
+          -d "$JSON_PAYLOAD" \
+          --max-time 30 \
+          --retry 0 \
+          --silent \
+          --verbose \
+          --write-out "%{http_code}" \
+          --output /tmp/webhook_response.txt 2>/tmp/curl_debug.txt)
+        
+        echo "HTTP Status: $HTTP_STATUS"
+        echo "Response body:"
+        cat /tmp/webhook_response.txt
+        echo ""
+        
+        # Show curl debug info (filtering sensitive data)
+        echo "Curl debug (filtered):"
+        grep -E "(> |< |Host:|User-Agent:|Accept:|Content-Type:|Content-Length:|X-API-Key:)" /tmp/curl_debug.txt | sed 's/X-API-Key: .*/X-API-Key: <masked>/'
+        echo ""
+        
+        # Check if status code indicates success (2xx)
+        if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+          echo "Webhook call successful!"
+          exit 0
+        else
+          echo "Webhook call failed with HTTP $HTTP_STATUS (attempt $i/3)"
+          
+          # Additional debugging for 401
+          if [ "$HTTP_STATUS" = "401" ]; then
+            echo "Authentication failed (401). Debugging hints:"
+            echo "1. Check if API key has trailing spaces or newlines"
+            echo "2. Verify the API key matches exactly what the server expects"
+            echo "3. Check if the variable is marked as 'masked' in GitLab settings"
+            
+            # Check for common issues
+            if echo "$PIATRA_WEBHOOK_API_KEY" | grep -q '[[:space:]]; then
+              echo "WARNING: API key appears to have trailing whitespace!"
+            fi
+          fi
+          
+          if [ $i -eq 3 ]; then
+            echo "All webhook attempts failed, but continuing pipeline..."
+            exit 0  # Don't fail the pipeline
+          fi
+          sleep 5
+        fi
+      done

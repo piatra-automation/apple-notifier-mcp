@@ -5,6 +5,22 @@ All notable changes to this enhanced version of apple-notifier-mcp will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-01-28
+
+### Added
+- **GitLab CI/CD Pipeline**: Automated build and release process for DXT packages
+  - Automatic tag creation with `^^^ v0.0.0` and `^!^ v0.0.0` commit patterns
+  - Automated DXT package building on version tags
+  - GitLab release creation with downloadable DXT assets
+  - Optional webhook notifications for releases
+- **CLAUDE.md Documentation**: Comprehensive guide for Claude Code instances working with this repository
+  - Development commands and build instructions
+  - Architecture overview and project structure
+  - CI/CD pipeline documentation
+
+### Fixed
+- README now accurately reflects that DXT files are available through automated releases
+
 ## [1.1.0-enhanced] - 2025-06-28
 
 ### Added - PIATRA Enhancements
