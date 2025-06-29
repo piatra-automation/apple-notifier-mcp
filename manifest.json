@@ -1,30 +1,51 @@
 {
   "dxt_version": "0.1",
   "name": "apple-notifier-mcp",
-  "version": "1.1.5",
-  "description": "Enhanced MCP server for sending native macOS notifications with terminal-notifier support, interactive dialogs, text-to-speech, screenshots, and file selection.",
-  "license": "MIT",
+  "version": "1.1.6",
+  "description": "Enhanced MCP server for macOS native notifications, dialogs, text-to-speech, screenshots, and file selection",
   "author": {
-    "name": "PIATRA (Enhanced by), Michael Darmousseh (Original)",
+    "name": "Michael Darmousseh (Original), PIATRA (Enhancements)",
     "url": "https://gitlab.com/piatra-open-source-projects"
   },
-  "contributors": [
-    {
-      "name": "Michael Darmousseh",
-      "url": "https://github.com/turlockmike",
-      "role": "Original Creator"
-    },
-    {
-      "name": "PIATRA",
-      "url": "https://gitlab.com/piatra-open-source-projects",
-      "role": "DXT & Terminal-Notifier Implementation"
-    }
-  ],
-  "homepage": "https://gitlab.com/piatra-open-source-projects/apple-notifier-mcp",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://gitlab.com/piatra-open-source-projects/apple-notifier-mcp.git"
+    "url": "git+https://gitlab.com/piatra-open-source-projects/apple-notifier-mcp.git"
   },
+  "icon": "logo.jpg",
+  "server": {
+    "type": "node",
+    "entry_point": "build/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/build/index.js"
+      ],
+      "env": {}
+    }
+  },
+  "tools": [
+    {
+      "name": "send_notification",
+      "description": "Send native macOS notifications using terminal-notifier with customizable title, message, subtitle, and sound"
+    },
+    {
+      "name": "prompt_user",
+      "description": "Display interactive dialog prompts to get user input with customizable buttons and icons"
+    },
+    {
+      "name": "speak",
+      "description": "Use macOS text-to-speech capabilities with voice and rate customization"
+    },
+    {
+      "name": "take_screenshot",
+      "description": "Capture screenshots using macOS screencapture with multiple format and type options"
+    },
+    {
+      "name": "select_file",
+      "description": "Open native macOS file picker dialog with file type filtering and multiple selection support"
+    }
+  ],
   "keywords": [
     "mcp",
     "macos",
@@ -34,79 +55,18 @@
     "anthropic",
     "text-to-speech",
     "screenshots",
-    "dialogs"
+    "dialogs",
+    "file-picker"
   ],
-  "runtime": {
-    "type": "node",
-    "version": ">=18"
-  },
-  "entry_point": "build/index.js",
-  "server": {
-    "command": "node",
-    "args": [
-      "build/index.js"
-    ],
-    "type": "stdio"
-  },
-  "capabilities": {
-    "tools": [
-      {
-        "name": "send_notification",
-        "description": "Send native macOS notifications using terminal-notifier with customizable title, message, subtitle, and sound options."
-      },
-      {
-        "name": "prompt_user",
-        "description": "Display interactive dialog prompts to get user input with customizable buttons and icons."
-      },
-      {
-        "name": "speak",
-        "description": "Use macOS text-to-speech capabilities with voice and rate customization."
-      },
-      {
-        "name": "take_screenshot",
-        "description": "Capture screenshots using macOS screencapture with multiple format and type options."
-      },
-      {
-        "name": "select_file",
-        "description": "Open native macOS file picker dialog with file type filtering and multiple selection support."
-      }
-    ]
+  "platforms": {
+    "macos": true
   },
   "dependencies": {
-    "system": [
-      {
-        "name": "terminal-notifier",
-        "description": "Required system-level tool for sending notifications with custom icons. Must be installed manually even with DXT.",
-        "installation": "brew install terminal-notifier",
-        "check_command": "which terminal-notifier",
-        "required": true,
-        "note": "DXT does not install system-level dependencies. This must be installed separately."
-      }
-    ]
-  },
-  "user_config": {
-    "notification_icon": {
-      "type": "string",
-      "title": "Custom Notification Icon",
-      "description": "Path to custom app icon for notifications (optional)",
-      "default": "",
-      "sensitive": false
+    "terminal-notifier": {
+      "type": "system",
+      "required": true,
+      "install_command": "brew install terminal-notifier",
+      "description": "Required for notification functionality"
     }
-  },
-  "platform": {
-    "os": [
-      "darwin"
-    ],
-    "arch": [
-      "x64",
-      "arm64"
-    ]
-  },
-  "files": [
-    "build/**/*",
-    "package.json",
-    "README.md",
-    "LICENSE",
-    "CHANGELOG.md"
-  ]
+  }
 }
