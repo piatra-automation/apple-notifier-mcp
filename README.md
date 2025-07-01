@@ -6,9 +6,9 @@ Enhanced MCP server for sending native macOS notifications with **terminal-notif
 
 <a href="https://glama.ai/mcp/servers/t1w1dq4wy4"><img width="380" height="200" src="https://glama.ai/mcp/servers/t1w1dq4wy4/badge" alt="apple-notifier-mcp MCP server" /></a>
 
-## 🔄 About This Enhanced Version
+## 🔄 About This Repository
 
-This is an enhanced version of the excellent [original apple-notifier-mcp](https://github.com/turlockmike/apple-notifier-mcp) by [Michael Darmousseh](https://github.com/turlockmike). We've built upon their solid foundation to address some key limitations and improve the user experience.
+This repository is based on a fork of the [original apple-notifier-mcp](https://github.com/turlockmike/apple-notifier-mcp) by [Michael Darmousseh](https://github.com/turlockmike). We've enhanced the original implementation to improve functionality and user experience.
 
 ### 🎯 Why These Enhancements?
 
@@ -79,22 +79,32 @@ npm install -g terminal-notifier
 
 ## Installation
 
-### Option 1: Desktop Extension (DXT) - Recommended 🌟
-
-The easiest way to install this extension is as a Desktop Extension (DXT) in Claude Desktop:
+### ⚠️ Prerequisites
 
 1. **Install terminal-notifier** (required system dependency):
    ```bash
    brew install terminal-notifier
    ```
 
-2. **Download** the latest `.dxt` file from our [releases page](https://gitlab.com/piatra-open-source-projects/apple-notifier-mcp/-/releases)
+2. **Configure macOS Notifications**:
+   - Open **System Settings > Notifications**
+   - Find **terminal-notifier** in the list
+   - Enable "Allow Notifications"
+   - Configure alert style and other preferences as desired
 
-3. **Install** by double-clicking the `.dxt` file or dragging it to Claude Desktop
+> **Important**: Without these steps, notifications will not appear on your system.
 
-4. **Done!** The extension will be automatically configured and ready to use
+### Option 1: Desktop Extension (DXT) - Recommended 🌟
 
-> **Important**: While DXT handles the MCP server installation automatically, `terminal-notifier` is a **system-level dependency** that must be installed separately. The extension will guide you through this if it's missing.
+The easiest way to install this extension is as a Desktop Extension (DXT) in Claude Desktop:
+
+1. **Download** the latest `.dxt` file from our [releases page](https://gitlab.com/piatra-open-source-projects/apple-notifier-mcp/-/releases)
+
+2. **Install** by double-clicking the `.dxt` file or dragging it to Claude Desktop
+
+3. **Done!** The extension will be automatically configured and ready to use
+
+> **Note**: DXT handles the MCP server installation but cannot install system-level dependencies like `terminal-notifier`. Make sure you've completed the prerequisites above.
 
 > **Automatic Updates**: DXT extensions update automatically when new versions are available!
 
@@ -107,14 +117,12 @@ npx -y @smithery/cli install apple-notifier-mcp --client claude
 ```
 
 ### Option 3: Manual Installation
-1. Install the package globally:
+
+1. Ensure terminal-notifier is installed (see Prerequisites above)
+
+2. Install the package globally:
 ```bash
 npm install -g apple-notifier-mcp
-```
-
-2. Install terminal-notifier for enhanced notifications:
-```bash
-brew install terminal-notifier
 ```
 
 3. Add to your MCP configuration file:
@@ -301,16 +309,15 @@ The extension will detect the missing dependency and provide clear installation 
 
 ## 🙏 Acknowledgments
 
-This enhanced version builds upon the excellent foundation created by:
-
-- **[Michael Darmousseh](https://github.com/turlockmike)** - Original creator of [apple-notifier-mcp](https://github.com/turlockmike/apple-notifier-mcp)
-- **[Anthropic](https://github.com/anthropics)** - For the MCP protocol and DXT specification
-- **[Julien Blanchard](https://github.com/julienXX)** - Creator of [terminal-notifier](https://github.com/julienXX/terminal-notifier)
-
 ### Contributors
 
-- **Michael Darmousseh** ([@turlockmike](https://github.com/turlockmike)) - Original Author & Core Functionality
-- **PIATRA** ([@piatra-open-source-projects](https://gitlab.com/piatra-open-source-projects)) - DXT Implementation & Terminal-Notifier Integration
+- **PIATRA** ([@piatra-open-source-projects](https://gitlab.com/piatra-open-source-projects)) - DXT Implementation, Terminal-Notifier Integration, Enhanced Features
+- **Michael Darmousseh** ([@turlockmike](https://github.com/turlockmike)) - Original Author of the base implementation
+
+### Special Thanks
+
+- **[Anthropic](https://github.com/anthropics)** - For the MCP protocol and DXT specification
+- **[Julien Blanchard](https://github.com/julienXX)** - Creator of [terminal-notifier](https://github.com/julienXX/terminal-notifier)
 
 ## 📄 License
 

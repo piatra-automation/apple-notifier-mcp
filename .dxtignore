@@ -1,0 +1,30 @@
+# Source files (already compiled to build/)
+src/
+*.ts
+tsconfig.json
+
+# Development files
+node_modules/
+.git/
+.github/
+.gitlab-ci.yml
+
+# Documentation not needed in DXT
+ATTRIBUTION.md
+ATTRIBUTION_COMPLIANCE.md
+CONTRIBUTING.md
+DXT_DEPENDENCIES_CLARIFICATION.md
+ENHANCEMENT_SUMMARY.md
+plan.md
+icon-readme.md
+
+# Lock files not needed
+package-lock.json
+pnpm-lock.yaml
+
+# Other files
+*.dxt
+.DS_Store
+.env
+.env.local
+.claude/

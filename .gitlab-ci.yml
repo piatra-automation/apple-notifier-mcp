@@ -110,9 +110,9 @@ create_tag:
     reports:
       dotenv: variables.env
 
-build_dxt:
+prepare_release:
   stage: build
-  image: node:18-alpine
+  image: alpine:latest
   needs:
     - job: create_tag
       artifacts: true
@@ -121,58 +121,18 @@ build_dxt:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/  # Run on semantic version tags
     - if: $CI_COMMIT_TAG == "stable"             # Also run on stable tag
     - if: $TAG_CREATED == "true"                 # Run if tag was created in this pipeline
-  before_script:
-    - apk add --no-cache git zip
-    - npm install -g npm@8.12.1  # Match packageManager version
   script:
     - |
-      echo "Current tag: $CI_COMMIT_TAG"
-      echo "Current ref: $CI_COMMIT_REF_NAME"
-      echo "Tag created in pipeline: $TAG_CREATED"
-      echo "Version tag from artifact: $VERSION_TAG"
+      echo "Preparing release for version $CI_COMMIT_TAG"
       
-      # Determine the version to build
-      if [ "$TAG_CREATED" = "true" ] && [ -n "$VERSION_TAG" ]; then
-        # Use the version tag from the create_tag job
-        VERSION=${VERSION_TAG#v}
-        echo "Building DXT for version created in this pipeline: $VERSION"
-      elif [ "$CI_COMMIT_TAG" = "stable" ]; then
-        # Get the version that stable points to
-        git fetch --tags
-        VERSION_TAG=$(git describe --tags stable)
-        VERSION=${VERSION_TAG#v}
-        echo "Building DXT for stable version (pointing to: $VERSION_TAG)"
-      elif [ -n "$CI_COMMIT_TAG" ]; then
-        # Strip the 'v' prefix from the version tag
-        VERSION=${CI_COMMIT_TAG#v}
-        echo "Building DXT for version: $VERSION"
-      else
-        echo "Error: No version tag found!"
-        exit 1
-      fi
-      
-      # Update version in package.json
-      npm version $VERSION --no-git-tag-version --allow-same-version
-      
-      # Update version in manifest.json
-      sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" manifest.json
-      
-      # Install dependencies
-      npm ci
-      
-      # Build the project
-      npm run build
-      
-      # Create the DXT package
-      npm run package:dxt
-      
-      # Verify the DXT file was created
+      # Verify the DXT file exists in the repository
       if [ ! -f "$DXT_FILENAME" ]; then
-        echo "Error: DXT file not created!"
+        echo "Error: DXT file not found in repository!"
+        echo "Please ensure 'dxt pack' was run and the file was committed"
         exit 1
       fi
       
-      echo "DXT package created successfully: $DXT_FILENAME"
+      echo "DXT package found in repository"
       ls -la $DXT_FILENAME
   artifacts:
     paths:
@@ -189,7 +149,7 @@ create_release:
     - job: create_tag
       artifacts: true
       optional: true
-    - job: build_dxt
+    - job: prepare_release
       artifacts: true
   script:
     - |

@@ -1,6 +1,6 @@
 {
   "name": "apple-notifier-mcp",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "An MCP server for sending native macOS notifications",
   "packageManager": "npm@8.12.1",
   "main": "build/index.js",
@@ -39,25 +39,25 @@
     "prepare": "npm run clean && npm run build",
     "prepublishOnly": "npm test",
     "test": "echo \"No tests yet\"",
-    "package:dxt": "npm run build && zip -r apple-notifier-mcp.dxt manifest.json build/ package.json README.md LICENSE CHANGELOG.md icon.png 2>/dev/null || zip -r apple-notifier-mcp.dxt manifest.json build/ package.json README.md LICENSE CHANGELOG.md",
+    "package:dxt": "npm run build && dxt pack",
     "install:dxt": "npm run package:dxt && echo 'DXT package created: apple-notifier-mcp.dxt'"
   },
   "type": "module",
   "author": {
-    "name": "Michael Darmousseh (Original), PIATRA (Enhancements)",
+    "name": "PIATRA (Enhanced Version), Michael Darmousseh (Original)",
     "email": "",
     "url": "https://gitlab.com/piatra-open-source-projects"
   },
   "contributors": [
     {
-      "name": "Michael Darmousseh",
-      "url": "https://github.com/turlockmike",
-      "role": "Original Author"
-    },
-    {
       "name": "PIATRA",
       "url": "https://gitlab.com/piatra-open-source-projects",
       "role": "DXT Implementation & Terminal-Notifier Integration"
+    },
+    {
+      "name": "Michael Darmousseh",
+      "url": "https://github.com/turlockmike",
+      "role": "Original Author"
     }
   ],
   "license": "MIT",

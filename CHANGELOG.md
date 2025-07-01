@@ -5,6 +5,20 @@ All notable changes to this enhanced version of apple-notifier-mcp will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.7] - 2025-01-29
+
+### Fixed
+- **DXT Packaging**: Switched to official `dxt pack` tool for proper package creation
+  - Fixed EISDIR and ENOENT errors during installation
+  - Added `.dxtignore` file to exclude unnecessary files (node_modules, source, etc.)
+  - Reduced package size from ~34MB to ~170KB
+
+### Changed
+- **CI/CD Pipelines**: Simplified to use pre-built DXT files
+  - Both GitLab CI and GitHub Actions now expect DXT to be built locally and committed
+  - Removed build steps from CI/CD, now just verify and attach existing DXT file
+  - Faster and more reliable releases
+
 ## [1.1.6] - 2025-01-29
 
 ### Fixed

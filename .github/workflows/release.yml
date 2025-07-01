@@ -180,10 +180,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          name: v${{ needs.build-dxt.outputs.version }}
+          name: v${{ needs.prepare-release.outputs.version }}
           tag_name: ${{ github.ref_name }}
           body: |
-            ## Apple Notifier MCP v${{ needs.build-dxt.outputs.version }}
+            ## Apple Notifier MCP v${{ needs.prepare-release.outputs.version }}
 
             Enhanced MCP server for macOS notifications with Desktop Extension (DXT) support.
 

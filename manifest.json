@@ -1,10 +1,10 @@
 {
   "dxt_version": "0.1",
   "name": "apple-notifier-mcp",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Enhanced MCP server for macOS native notifications, dialogs, text-to-speech, screenshots, and file selection",
   "author": {
-    "name": "Michael Darmousseh (Original), PIATRA (Enhancements)",
+    "name": "PIATRA (Enhanced Version), Michael Darmousseh (Original)",
     "url": "https://gitlab.com/piatra-open-source-projects"
   },
   "license": "MIT",
@@ -12,7 +12,7 @@
     "type": "git",
     "url": "git+https://gitlab.com/piatra-open-source-projects/apple-notifier-mcp.git"
   },
-  "icon": "logo.jpg",
+  "icon": "logo.png",
   "server": {
     "type": "node",
     "entry_point": "build/index.js",

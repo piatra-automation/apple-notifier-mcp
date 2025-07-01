@@ -1,15 +1,31 @@
 # Attribution and Acknowledgments
 
+## Current Maintainers
+
+**PIATRA** ([@piatra-open-source-projects](https://gitlab.com/piatra-open-source-projects))
+- **Repository**: https://gitlab.com/piatra-open-source-projects/apple-notifier-mcp
+- **Copyright**: Copyright (c) 2025 PIATRA
+- **License**: MIT License
+
+### PIATRA Contributions
+- **Desktop Extension (DXT) Implementation**: Complete migration to Anthropic's DXT specification v0.1
+- **Terminal-Notifier Integration**: Replaced osascript with terminal-notifier for better notification control
+- **Enhanced User Experience**: One-click installation, automatic updates, improved error handling
+- **Professional Packaging**: Modern build system, comprehensive documentation, proper attribution
+- **Improved Architecture**: Better dependency management, security enhancements, maintainable code structure
+- **CI/CD Pipelines**: Automated releases for both GitLab and GitHub
+- **Comprehensive Documentation**: Installation guides, technical documentation, troubleshooting
+
 ## Original Work
 
-This enhanced version is based on the excellent **apple-notifier-mcp** project originally created by:
+This repository is based on a fork of the **apple-notifier-mcp** project originally created by:
 
 - **Author**: Michael Darmousseh ([@turlockmike](https://github.com/turlockmike))
 - **Original Repository**: https://github.com/turlockmike/apple-notifier-mcp
 - **License**: MIT License
 - **Original Copyright**: Copyright (c) 2024 Michael Darmousseh
 
-### Original Features Created by Michael Darmousseh
+### Original Features by Michael Darmousseh
 - MCP (Model Context Protocol) server implementation
 - macOS notification system using osascript
 - Interactive dialog prompts for user input
@@ -19,19 +35,6 @@ This enhanced version is based on the excellent **apple-notifier-mcp** project o
 - TypeScript implementation with comprehensive type definitions
 - Error handling and validation framework
 - Tool schema definitions and MCP protocol compliance
-
-## Enhancements by PIATRA
-
-**Enhanced by**: PIATRA ([@piatra-open-source-projects](https://gitlab.com/piatra-open-source-projects))
-**Enhancement Copyright**: Copyright (c) 2025 PIATRA
-**Enhanced Repository**: https://gitlab.com/piatra-open-source-projects/apple-notifier-mcp
-
-### PIATRA Contributions
-- **Desktop Extension (DXT) Implementation**: Complete migration to Anthropic's DXT specification v0.1
-- **Terminal-Notifier Integration**: Replaced osascript with terminal-notifier for better notification control
-- **Enhanced User Experience**: One-click installation, automatic updates, improved error handling
-- **Professional Packaging**: Modern build system, comprehensive documentation, proper attribution
-- **Improved Architecture**: Better dependency management, security enhancements, maintainable code structure
 
 ## Third-Party Dependencies and Tools
 
@@ -48,6 +51,7 @@ This enhanced version is based on the excellent **apple-notifier-mcp** project o
 ### Development Tools
 - **TypeScript** - Language and compiler
 - **Node.js** - Runtime environment
+- **DXT CLI** - Desktop Extension packaging tool
 
 ## Specifications and Standards
 
@@ -60,11 +64,11 @@ This enhanced version is based on the excellent **apple-notifier-mcp** project o
 
 This project maintains full compliance with the original MIT license from Michael Darmousseh's work. The enhancements by PIATRA are also released under the MIT license, ensuring:
 
-- ✅ **Original Attribution Preserved**: Michael Darmousseh is credited as the original author
-- ✅ **Enhancement Attribution**: PIATRA is credited for the DXT and terminal-notifier enhancements
-- ✅ **License Continuity**: MIT license maintained for both original and enhanced work
-- ✅ **Source Transparency**: Clear documentation of what was original vs. enhanced
-- ✅ **Community Friendly**: Same permissive license allows continued open source development
+- **Original Attribution Preserved**: Michael Darmousseh is credited as the original author
+- **Enhancement Attribution**: PIATRA is credited for the DXT and terminal-notifier enhancements
+- **License Continuity**: MIT license maintained for both original and enhanced work
+- **Source Transparency**: Clear documentation of what was original vs. enhanced
+- **Community Friendly**: Same permissive license allows continued open source development
 
 ## Recognition and Thanks
 
@@ -80,7 +84,7 @@ Special thanks to:
 
 Both the original and enhanced versions welcome contributions:
 
+- **Enhanced Version (This Repository)**: [piatra-open-source-projects/apple-notifier-mcp](https://gitlab.com/piatra-open-source-projects/apple-notifier-mcp)
 - **Original Version**: [turlockmike/apple-notifier-mcp](https://github.com/turlockmike/apple-notifier-mcp)
-- **Enhanced Version**: [piatra-open-source-projects/apple-notifier-mcp](https://gitlab.com/piatra-open-source-projects/apple-notifier-mcp)
 
 Please respect the contribution guidelines of each repository and maintain proper attribution for all work.
