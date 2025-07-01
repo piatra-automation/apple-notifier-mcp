@@ -4,10 +4,15 @@ src/
 tsconfig.json
 
 # Development files
-node_modules/
 .git/
 .github/
 .gitlab-ci.yml
+
+# Development dependencies only (keep production deps)
+node_modules/@types/
+node_modules/typescript/
+node_modules/.bin/
+node_modules/.package-lock.json
 
 # Documentation not needed in DXT
 ATTRIBUTION.md
@@ -19,7 +24,6 @@ plan.md
 icon-readme.md
 
 # Lock files not needed
-package-lock.json
 pnpm-lock.yaml
 
 # Other files
